@@ -23,7 +23,7 @@ namespace Talabat.Repository.Data.Config
                 //.OnDelete(DeleteBehavior.Cascade);
                 
             builder.HasOne(p=>p.Category).WithMany()
-                .HasForeignKey(p=>p.CategoryId);
+                .HasForeignKey(p=>p.CategoryId); 
         }
     }
 }

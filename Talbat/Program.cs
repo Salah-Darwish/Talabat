@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
+using Talabat.Core.Repoisteries.Contract;
+using Talabat.Repository;
 using Talabat.Repository.Data;
 
 namespace Talbat
@@ -20,6 +22,7 @@ namespace Talbat
             {
                 options.UseSqlServer(WebApplicationBuilder.Configuration.GetConnectionString("DefaultConnection")); 
             });
+            WebApplicationBuilder.Services.AddScoped(typeof(IgenericReposity<>), typeof(GenericRepositry<>)); 
             #endregion
             var app = WebApplicationBuilder.Build();
               using var scope = app.Services.CreateScope();
@@ -32,6 +35,7 @@ namespace Talbat
             try
             {
                 await _dbContext.Database.MigrateAsync(); // Update-Database
+                await StoreContextSeed.SeedAsync(_dbContext); //Data Seeding 
             }
             catch (Exception ex)
             {
