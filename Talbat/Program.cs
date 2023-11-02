@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Writers;
 using Talabat.Core.Repoisteries.Contract;
 using Talabat.Repository;
 using Talabat.Repository.Data;
+using Talbat.Helpers;
 
 namespace Talbat
 {
@@ -22,7 +23,8 @@ namespace Talbat
             {
                 options.UseSqlServer(WebApplicationBuilder.Configuration.GetConnectionString("DefaultConnection")); 
             });
-            WebApplicationBuilder.Services.AddScoped(typeof(IgenericReposity<>), typeof(GenericRepositry<>)); 
+            WebApplicationBuilder.Services.AddScoped(typeof(IgenericReposity<>), typeof(GenericRepositry<>));
+            WebApplicationBuilder.Services.AddAutoMapper(typeof(MappingProfiles)); 
             #endregion
             var app = WebApplicationBuilder.Build();
               using var scope = app.Services.CreateScope();
@@ -52,9 +54,8 @@ namespace Talbat
             }
 
             app.UseHttpsRedirection();
-
+            app.UseStaticFiles();
             app.UseAuthorization();
-
 
             app.MapControllers();
             #endregion

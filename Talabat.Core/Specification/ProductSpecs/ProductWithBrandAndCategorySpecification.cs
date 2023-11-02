@@ -12,8 +12,19 @@ namespace Talabat.Core.Specification.ProductSpecs
         //  This Constractour will be used to Creating object to Get All Products
         public ProductWithBrandAndCategorySpecification():base()
         {
-        Includes.Add(P=>P.Brand);
-         Includes.Add(P=>P.Category);   
+            ApplyIncludes();
+        }
+
+
+        // This Constractour will be used to Creating object to Get a Specific Product with Id
+        public ProductWithBrandAndCategorySpecification(int id) : base(P=>P.Id==id)
+        {
+            ApplyIncludes(); 
+        }
+        private void ApplyIncludes()
+        {
+            Includes.Add(P => P.Brand);
+            Includes.Add(P => P.Category);
         }
     }
 }
