@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
 using Talabat.Core.Repoisteries.Contract;
 using Talabat.Repository;
 using Talabat.Repository.Data;
+using Talbat.Errors;
 using Talbat.Helpers;
 
 namespace Talbat
@@ -24,7 +26,22 @@ namespace Talbat
                 options.UseSqlServer(WebApplicationBuilder.Configuration.GetConnectionString("DefaultConnection")); 
             });
             WebApplicationBuilder.Services.AddScoped(typeof(IgenericReposity<>), typeof(GenericRepositry<>));
-            WebApplicationBuilder.Services.AddAutoMapper(typeof(MappingProfiles)); 
+            WebApplicationBuilder.Services.AddAutoMapper(typeof(MappingProfiles));
+            WebApplicationBuilder.Services.Configure<ApiBehaviorOptions>(options => {
+                options.InvalidModelStateResponseFactory = (actionContext) =>
+                {
+                    var errors=actionContext.ModelState.Where(P=>P.Value.Errors.Count()>0)
+                                                            .SelectMany(P=>P.Value.Errors)
+                                                            .Select(E=>E.ErrorMessage)
+                                                            .ToArray();
+                    var validationErrorResponse = new ApiValidationErrorResponse()
+                    {
+                        Errors = errors 
+                    };
+                return new BadRequestObjectResult(validationErrorResponse); 
+                }; 
+
+            }); 
             #endregion
             var app = WebApplicationBuilder.Build();
               using var scope = app.Services.CreateScope();
