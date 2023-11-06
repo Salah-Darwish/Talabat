@@ -5,7 +5,9 @@ using Talabat.Core.Repoisteries.Contract;
 using Talabat.Repository;
 using Talabat.Repository.Data;
 using Talbat.Errors;
+using Talbat.Extensions;
 using Talbat.Helpers;
+using Talbat.MiddleWares;
 
 namespace Talbat
 {
@@ -18,33 +20,17 @@ namespace Talbat
             // Add services to DI the container.
             #region Configure Services
           WebApplicationBuilder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-           WebApplicationBuilder.Services.AddEndpointsApiExplorer();
-           WebApplicationBuilder.Services.AddSwaggerGen();
+         WebApplicationBuilder.Services.AddSwaggerServices();
             WebApplicationBuilder.Services.AddDbContext<StoreContext>(options =>
             {
                 options.UseSqlServer(WebApplicationBuilder.Configuration.GetConnectionString("DefaultConnection")); 
             });
-            WebApplicationBuilder.Services.AddScoped(typeof(IgenericReposity<>), typeof(GenericRepositry<>));
-            WebApplicationBuilder.Services.AddAutoMapper(typeof(MappingProfiles));
-            WebApplicationBuilder.Services.Configure<ApiBehaviorOptions>(options => {
-                options.InvalidModelStateResponseFactory = (actionContext) =>
-                {
-                    var errors=actionContext.ModelState.Where(P=>P.Value.Errors.Count()>0)
-                                                            .SelectMany(P=>P.Value.Errors)
-                                                            .Select(E=>E.ErrorMessage)
-                                                            .ToArray();
-                    var validationErrorResponse = new ApiValidationErrorResponse()
-                    {
-                        Errors = errors 
-                    };
-                return new BadRequestObjectResult(validationErrorResponse); 
-                }; 
-
-            }); 
+            
+            WebApplicationBuilder.Services.AddApplicationServices(); 
             #endregion
-            var app = WebApplicationBuilder.Build();
-              using var scope = app.Services.CreateScope();
+              var app = WebApplicationBuilder.Build();
+            app.UseMiddleware<ExceptionMiddleWares>();
+            using var scope = app.Services.CreateScope();
                 var services = scope.ServiceProvider;
                 var _dbContext = services.GetRequiredService<StoreContext>();
             // Ask Clr for Creating Object from DbContext Explicitly 
@@ -63,13 +49,13 @@ namespace Talbat
             }
          
             #region Configure Kestrel Services
+            
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+             app.UseSwaggerMiddlewares();
             }
-
+            app.UseStatusCodePagesWithRedirects("Errors/{0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseAuthorization();
